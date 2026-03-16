@@ -1,5 +1,8 @@
 name: Sentiment Engine
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   schedule:
     - cron: "*/5 * * * *"   # запуск каждые 5 минут
@@ -21,10 +24,19 @@ jobs:
       run: |
         pip install pandas requests yfinance
 
-    - name: Run script
+    - name: Ensure CSV exists
+      run: |
+        python - <<EOF
+import os
+if not os.path.exists("sentiment.csv"):
+    with open("sentiment.csv","w") as f:
+        f.write("time,sentiment\n")
+EOF
+
+    - name: Run sentiment script
       run: python sentiment_engine.py
 
-    - name: Commit data
+    - name: Commit CSV
       run: |
         git config --global user.name "bot"
         git config --global user.email "bot@github.com"
